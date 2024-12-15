@@ -8,6 +8,8 @@ import warnings
 
 from mesa import Agent
 
+from obstacle import Obstacle
+
 
 class Ship(Agent):
     """A ship agent that moves towards a destination port."""
@@ -18,7 +20,7 @@ class Ship(Agent):
         speed,
         destination,
         vision,
-        separation,
+        avoidance,
         cohere=0.03,
         separate=0.015,
         match=0.05,
@@ -30,7 +32,7 @@ class Ship(Agent):
             speed: Distance to move per step
             destination: numpy array of the destination port's coordinates
             vision: Radius to look around for nearby ships
-            separation: Minimum distance to maintain from other ships
+            separation: factor for avoidance of obstacles
             cohere: Relative importance of matching neighbors' positions (default: 0.03)
             separate: Relative importance of avoiding close neighbors (default: 0.015)
             match: Relative importance of matching neighbors' directions (default: 0.05)
@@ -39,35 +41,76 @@ class Ship(Agent):
         self.speed = speed
         self.destination = destination
         self.vision = vision
-        self.separation = separation
+        self.avoidance = avoidance
         self.cohere_factor = cohere
         self.separate_factor = separate
         self.match_factor = match
 
     def step(self):
-        """Move the ship towards its destination."""
-        # Compute the direction vector towards the destination
+        """Move the ship towards its destination and avoid obstacles."""
+        
         direction_to_destination = self.destination - self.pos
         distance_to_destination = np.linalg.norm(direction_to_destination)
 
-        # Check if the ship has reached its destination
         if distance_to_destination < self.speed:
-            self.model.space.move_agent(self, self.destination)
+            self.move_to_destination()
             return
 
-        # Normalize the direction vector and scale by speed
+        # Normalize the direction vector towards the destination and scale by speed
         movement_vector = (direction_to_destination / distance_to_destination) * self.speed
+        # Add random variation to the movement direction
+        variation = np.random.normal(0, 0.05, size=2)  
+        movement_vector += variation
 
-        # Add small random variations to the movement direction
-        random_variation = np.random.normal(0, 0.1, 2)  # Gaussian noise with mean 0 and std deviation 0.1
-        movement_vector += random_variation
+        # Avoid obstacles if they are within vision range
+        obstacles_in_range = self.find_obstacles_in_view_range()
+        if obstacles_in_range:
+            avoidance_vector = self.compute_avoidance_vector(obstacles_in_range, movement_vector)
+            movement_vector += avoidance_vector 
 
-        # Normalize the movement vector again after adding noise
+        self.move_position(movement_vector)
+        self.direction = movement_vector
+
+    def move_position(self, movement_vector):
         movement_vector /= np.linalg.norm(movement_vector)
-        movement_vector *= self.speed
-
-        # Calculate new position
-        new_pos = self.pos + movement_vector
-
-        # Move the ship
+        new_pos = self.pos + movement_vector * self.speed
         self.model.space.move_agent(self, new_pos)
+
+    def compute_avoidance_vector(self, obstacles_in_range, movement_vector):
+        avoidance_vector = np.zeros(2)
+
+        obstacles_in_range.sort(key=lambda obs: np.linalg.norm(self.pos - obs.pos))
+        obstacle = obstacles_in_range[0]
+
+        # Calculate the vector from the obstacle to the ship
+        vector_to_obstacle = self.pos - obstacle.pos
+        distance_to_obstacle = np.linalg.norm(vector_to_obstacle)
+
+        if distance_to_obstacle > 0:
+            # Avoidance strength increases as obstacles get closer
+            avoidance_strength = min(1.0, self.avoidance / distance_to_obstacle)
+
+            # Check alignment of obstacle with movement direction
+            dot_product = np.dot(
+                    vector_to_obstacle / distance_to_obstacle, 
+                    movement_vector / np.linalg.norm(movement_vector)
+                )
+            if dot_product > 0.8:  # Strong alignment
+                avoidance_strength += 0.2
+
+            # Add scaled avoidance vector
+            avoidance_vector += (vector_to_obstacle / distance_to_obstacle) * avoidance_strength
+        return avoidance_vector
+
+    def move_to_destination(self):    
+        new_pos = self.destination
+        self.model.space.move_agent(self, new_pos)        
+
+    def find_obstacles_in_view_range(self):
+        obstacles_in_range = [
+            neighbor for neighbor in self.model.space.get_neighbors(
+                self.pos, self.vision, include_center=True)
+            if isinstance(neighbor, Obstacle)  # Check if the neighbor is an obstacle
+        ]
+        
+        return obstacles_in_range

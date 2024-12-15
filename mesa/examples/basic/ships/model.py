@@ -7,8 +7,12 @@ Desription here
 import numpy as np
 
 from mesa import Model, DataCollector
-from ship import Ship
 from mesa.space import ContinuousSpace
+
+
+from ship import Ship
+from obstacle import Obstacle
+
 
 
 class ShipModel(Model):
@@ -20,28 +24,29 @@ class ShipModel(Model):
         width=100,
         height=100,
         speed_range=(0.5, 1.5),
-        vision=10,
-        separation=2,
+        vision=7,
+        avoidance=0.5,
         cohere=0,
         separate=0.015,
         match=0,
         seed=None,
-        ports=None
+        ports=None,
+        obstacles=None
     ):
         """Create a new Ship model.
 
         Args:
-            population: Number of ships in the simulation (default: 100)
-            width: Width of the space (default: 100)
-            height: Height of the space (default: 100)
-            speed_range: Tuple specifying the min and max speed for ships (default: (0.5, 1.5))
-            vision: How far each ship can see (default: 10)
-            separation: Minimum distance between ships (default: 2)
-            cohere: Weight of cohesion behavior (default: 0.03)
-            separate: Weight of separation behavior (default: 0.015)
-            match: Weight of alignment behavior (default: 0.05)
-            seed: Random seed for reproducibility (default: None)
-            ports: List of port coordinates [(x1, y1), (x2, y2), ...] (default: None)
+            population: Number of ships in the simulation 
+            width: Width of the space 
+            height: Height of the space 
+            speed_range: Tuple specifying the min and max speed for ships 
+            vision: How far each ship can see 
+            avoidance: factor for avoiding obstacles
+            cohere: Weight of cohesion behavior 
+            separate: Weight of separation behavior 
+            match: Weight of alignment behavior 
+            seed: Random seed for reproducibility 
+            ports: List of port coordinates [(x1, y1), (x2, y2), ...] 
         """
         super().__init__(seed=seed)
 
@@ -49,7 +54,7 @@ class ShipModel(Model):
         self.population = population
         self.vision = vision
         self.speed_range = speed_range
-        self.separation = separation
+        self.avoidance = avoidance
 
         # Set up the space
         self.space = ContinuousSpace(width, height, torus=False)
@@ -62,6 +67,9 @@ class ShipModel(Model):
 
         # Create and place the Ship agents
         self.make_agents()
+
+        # Create and place obstacles
+        self.create_obstacles(obstacles)
 
         # For tracking statistics
         self.datacollector = DataCollector(
@@ -98,10 +106,17 @@ class ShipModel(Model):
                 speed=speed,
                 destination=np.array(destination_port),
                 vision=self.vision,
-                separation=self.separation,
+                avoidance=self.avoidance,
                 **self.factors,
             )
             self.space.place_agent(agent, pos)
+
+    def create_obstacles(self, obstacles):
+        """Place random obstacles in the space."""
+        for pos in obstacles:
+            obstacle = Obstacle(self)
+            pos = np.array(pos)
+            self.space.place_agent(obstacle, pos)
 
     def step(self):
         """Run one step of the model.
