@@ -9,10 +9,8 @@ import numpy as np
 from mesa import Model, DataCollector
 from mesa.space import ContinuousSpace
 
-
 from ship import Ship
 from obstacle import Obstacle
-
 
 
 class ShipModel(Model):
@@ -97,13 +95,13 @@ class ShipModel(Model):
             # Select a random destination port different from the starting port
             destination_port = self.random.choice([port for port in self.ports if port != start_port])
 
-            # Assign a random speed within the speed range
-            speed = self.random.uniform(*self.speed_range)
+            # Assign a random max speed within the speed range
+            max_speed = self.random.uniform(*self.speed_range)
 
             # Create and place the agent
             agent = Ship(
                 model=self,
-                speed=speed,
+                max_speed=max_speed,
                 destination=np.array(destination_port),
                 vision=self.vision,
                 avoidance=self.avoidance,

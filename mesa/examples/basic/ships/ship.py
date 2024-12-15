@@ -11,13 +11,14 @@ from mesa import Agent
 from obstacle import Obstacle
 
 
+
 class Ship(Agent):
     """A ship agent that moves towards a destination port."""
 
     def __init__(
         self,
         model,
-        speed,
+        max_speed,
         destination,
         vision,
         avoidance,
@@ -29,7 +30,7 @@ class Ship(Agent):
 
         Args:
             model: Model instance the agent belongs to
-            speed: Distance to move per step
+            max_speed: Maximum speed of the ship
             destination: numpy array of the destination port's coordinates
             vision: Radius to look around for nearby ships
             separation: factor for avoidance of obstacles
@@ -38,7 +39,10 @@ class Ship(Agent):
             match: Relative importance of matching neighbors' directions (default: 0.05)
         """
         super().__init__(model)
-        self.speed = speed
+        self.max_speed = max_speed
+        self.current_speed = 0.0  # Start with zero velocity
+        self.acceleration = 0.05  # Acceleration per step
+        self.deceleration = 0.1  # Deceleration per step
         self.destination = destination
         self.vision = vision
         self.avoidance = avoidance
@@ -48,32 +52,40 @@ class Ship(Agent):
 
     def step(self):
         """Move the ship towards its destination and avoid obstacles."""
-        
         direction_to_destination = self.destination - self.pos
         distance_to_destination = np.linalg.norm(direction_to_destination)
 
-        if distance_to_destination < self.speed:
+        if distance_to_destination < self.current_speed:
             self.move_to_destination()
             return
+        
+        if distance_to_destination < self.current_speed*10:
+            self.current_speed = max(0, self.current_speed - self.deceleration)
+        # Accelerate to max speed if not near the destination
+        elif self.current_speed < self.max_speed:
+            self.current_speed = min(self.max_speed, self.current_speed + self.acceleration)
 
-        # Normalize the direction vector towards the destination and scale by speed
-        movement_vector = (direction_to_destination / distance_to_destination) * self.speed
+
+        # Normalize the direction vector towards the destination
+        movement_vector = direction_to_destination / distance_to_destination
+
+
         # Add random variation to the movement direction
         variation = np.random.normal(0, 0.05, size=2)  
         movement_vector += variation
-
+        
         # Avoid obstacles if they are within vision range
         obstacles_in_range = self.find_obstacles_in_view_range()
         if obstacles_in_range:
             avoidance_vector = self.compute_avoidance_vector(obstacles_in_range, movement_vector)
-            movement_vector += avoidance_vector 
+            movement_vector += avoidance_vector
+
+        movement_vector /= np.linalg.norm(movement_vector)  # Re-normalize after adding avoidance
 
         self.move_position(movement_vector)
-        self.direction = movement_vector
 
     def move_position(self, movement_vector):
-        movement_vector /= np.linalg.norm(movement_vector)
-        new_pos = self.pos + movement_vector * self.speed
+        new_pos = self.pos + movement_vector * self.current_speed
         self.model.space.move_agent(self, new_pos)
 
     def compute_avoidance_vector(self, obstacles_in_range, movement_vector):
