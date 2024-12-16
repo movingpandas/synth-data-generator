@@ -28,8 +28,8 @@ class ShipModel(Model):
         separate=0.015,
         match=0,
         seed=None,
-        ports=None,
-        obstacles=None
+        ports=[(1,1), (30,30),(70,50),(10,70),(70,20), (90,99)],
+        obstacles=[(10,0),(6,60),(45,24),(20,18),(60,85),(40,15),(60,40),(69,30)],
     ):
         """Create a new Ship model.
 
