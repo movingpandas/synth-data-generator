@@ -21,7 +21,7 @@ class ShipModel(Model):
         population=100,
         width=100,
         height=100,
-        speed_range=(0.5, 1.5),
+        speed_range=(1, 1.5),
         vision=7,
         avoidance=0.5,
         cohere=0,
@@ -91,12 +91,15 @@ class ShipModel(Model):
             # Select a random starting port
             start_port = self.random.choice(self.ports)
             pos = np.array(start_port)
+            print(f'Setting starting port to {pos} ...')
 
             # Select a random destination port different from the starting port
             destination_port = self.random.choice([port for port in self.ports if port != start_port])
+            print(f'Setting destination port to {destination_port} ...')
 
             # Assign a random max speed within the speed range
             max_speed = self.random.uniform(*self.speed_range)
+            print(f'Setting max speed to {max_speed} ...')
 
             # Create and place the agent
             agent = Ship(
