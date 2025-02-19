@@ -60,13 +60,13 @@ class Ship(Agent):
         distance_to_destination = np.linalg.norm(direction_to_destination)
         
         if distance_to_destination == 0: 
-            print('Stopped ...')
+            #print('Stopped ...')
             return
         
     
-        print('Step ...')
+        #print('Step ...')
         if distance_to_destination < (self.current_speed*self.dwa_config.dt):
-            print('Moving to destination ...')
+            #print('Moving to destination ...')
             self.move_to_destination()
             return
         
