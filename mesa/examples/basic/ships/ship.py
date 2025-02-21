@@ -49,7 +49,7 @@ class Ship(Agent):
         self.dwa_config = Config()
         self.dwa_config.max_speed = self.max_speed
         self.dwa_config.max_accel = self.acceleration
-        self.dwa_config.robot_radius = 1
+        #self.dwa_config.robot_radius = 1
         #self.dwa_config.dt = 0.5
 
     def step(self):
