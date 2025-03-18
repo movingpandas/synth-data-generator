@@ -1,8 +1,6 @@
 import logging
 import numpy as np
-from math import pi
 from mesa import Agent
-import random
 import math
 
 from a_star import astar
@@ -11,9 +9,8 @@ from dynamic_window_approach import dwa_control, motion
 class Ship(Agent):
     def __init__(self, model, start_port, all_ports, dwa_config):
         super().__init__(model)
-        self.pos = start_port.pos  # Start at the assigned port
         self.destination_port = self.assign_destination(all_ports, start_port)
-        self.global_path = self.calculate_global_path(self.destination_port.pos)
+        self.global_path = self.calculate_global_path(start_port.pos, self.destination_port.pos)
         self.dwa_config = dwa_config
 
         # Assign a random max speed within the speed range
@@ -21,8 +18,7 @@ class Ship(Agent):
         logging.info(f"Ship {self.unique_id} has a maximum speed os {dwa_config["max_speed"]}.")
 
         # Ship's state (x, y, theta, v, w)
-        # self.state = np.array([self.pos[0], self.pos[1], 0.0, 0.0, 0.0])
-        self.state = (self.pos[0], self.pos[1], 0.0, 0.0, 0.0)
+        self.state = (start_port.pos[0], start_port.pos[1], 0.0, 0.0, 0.0)
 
         self.current_wp_idx = 0
 
@@ -32,14 +28,10 @@ class Ship(Agent):
 
         """Move the ship along the calculated global path."""
         if self.global_path and len(self.global_path) > 1:
-            # self.state[0] = float(self.pos[0])
-            # self.state[1] = float(self.pos[1])
             local_goal = self.get_local_goal(self.state, self.global_path, lookahead=self.model.lookahead)
             control, predicted_trajectory, cost_info = dwa_control(self.state, self.dwa_config, self.model.obstacle_tree, 
                                                                    self.model.buffered_obstacles, local_goal)
             self.state = motion(self.state, control[0], control[1], self.dwa_config["dt"])
-            # self.pos = (float(self.state[0]),float(self.state[1]))
-            # self.current_speed = float(self.state[3])
 
             if math.hypot(self.state[0] - self.destination_port.pos[0], self.state[1] - self.destination_port.pos[1]) < self.dwa_config["robot_radius"]:
                 self.move_to_destination()
@@ -69,9 +61,9 @@ class Ship(Agent):
         possible_destinations = [port for port in all_ports if port != start_port]
         return self.random.choice(possible_destinations) if possible_destinations else start_port
 
-    def calculate_global_path(self, destination):
+    def calculate_global_path(self, start, destination):
         """Calculate a path using A* algorithm."""
-        grid_start = (int(self.pos[0] / self.model.resolution), int(self.pos[1] / self.model.resolution))
+        grid_start = (int(start[0] / self.model.resolution), int(start[1] / self.model.resolution))
         grid_goal = (int(destination[0] / self.model.resolution), int(destination[1] / self.model.resolution))
         global_path_indices = astar(self.model.occupancy_grid, grid_start, grid_goal)
 

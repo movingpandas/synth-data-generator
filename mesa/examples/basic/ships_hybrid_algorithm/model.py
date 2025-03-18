@@ -1,9 +1,8 @@
-import logging
 from mesa import Model
 from mesa.space import ContinuousSpace
 from mesa.datacollection import DataCollector
 from mesa.time import RandomActivation
-from shapely.geometry import Polygon, Point
+from shapely.geometry import Polygon
 import random
 from shapely.strtree import STRtree
 
@@ -45,7 +44,6 @@ class ShipModel(Model):
         self.create_ships(num_ships, self.port_agents)
 
         self.datacollector = DataCollector(
-            # model_reporters={"Ship Count": lambda m: len([a for a in m.schedule.agents if isinstance(a, Ship)])},
             agent_reporters={
                 "x": lambda a: a.pos[0] if isinstance(a, Ship) and a.pos[0] else None,
                 "y": lambda a: a.pos[1] if isinstance(a, Ship) and a.pos[1] else None,
@@ -87,6 +85,7 @@ class ShipModel(Model):
             obstacle_agents.append(obstacle)
 
             # Fill grid with obstacles
+            # Generates many warnings
             # min_x, min_y, max_x, max_y = map(int, obstacle_shape.bounds)
             # for x in range(min_x, max_x + 1):
             #     for y in range(min_y, max_y + 1):

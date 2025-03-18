@@ -1,6 +1,4 @@
 import matplotlib.pyplot as plt
-import pandas as pd
-import json
 from shapely.geometry import Polygon
 
 def plot_simulation(df, config, output_image="simulation_plot.png"):

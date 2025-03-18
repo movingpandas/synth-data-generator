@@ -1,7 +1,5 @@
 import logging
-# import pandas as pd
-# import movingpandas as mpd
-from datetime import datetime, timedelta
+from datetime import datetime
 import json
 
 from model import ShipModel
@@ -41,9 +39,6 @@ def run_simulation(config_file="config/config.json"):
     # Run the simulation
     logging.info(f"{datetime.now()} Starting ...")
     for t in range(steps):
-        # stride = 50
-        # if t % stride == 0:
-        #     logging.info(f"Steps {t} - {t + stride - 1}...")
         logging.info(f"Step {t}")
         model.step()
     logging.info(f"{datetime.now()} Finished.")
@@ -51,10 +46,7 @@ def run_simulation(config_file="config/config.json"):
     agent_df = model.datacollector.get_agent_vars_dataframe().dropna()
     df = agent_df.reset_index()
 
-    # print("Collected Data Shape:", df.shape)
-    # print(df.head())
-
-    # If desired, save to CSV
+    # Save to CSV
     df.to_csv("ship_simulation_output.csv", index=False)
     logging.info("Saved simulation data to ship_simulation_output.csv")
 
