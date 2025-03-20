@@ -12,11 +12,11 @@ from agents.obstacle import Obstacle
 from a_star import create_occupancy_grid
 
 class ShipModel(Model):
-    def __init__(self, width, height, num_ships, speed_range, ports, obstacles, dwa_config, resolution=1, obstacle_threshold=0, lookahead=3.0):
+    def __init__(self, width, height, num_ships, max_speed_range, ports, speed_limit_zones, obstacles, dwa_config, resolution=1, obstacle_threshold=0, lookahead=3.0):
         super().__init__()
         self.width = width
         self.height = height
-        self.speed_range = speed_range
+        self.max_speed_range = max_speed_range
         self.dwa_config = dwa_config
         self.resolution = resolution
         self.obstacle_threshold = obstacle_threshold
@@ -24,6 +24,8 @@ class ShipModel(Model):
 
         self.space = ContinuousSpace(self.width, self.height, torus=False)
         self.schedule = RandomActivation(self)
+
+        self.speed_limit_zones = speed_limit_zones
 
         # Create obstacles
         self.obstacle_agents = self.create_obstacles(obstacles)

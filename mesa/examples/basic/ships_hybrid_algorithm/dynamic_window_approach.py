@@ -11,6 +11,9 @@ def motion(state, v, w, dt):
     y += v * math.sin(theta) * dt
     theta += w * dt
 
+    # Normalize theta to keep it between -π and π
+    theta = (theta + math.pi) % (2 * math.pi) - math.pi
+
     # print(f'NEW state x = {x} | y = {y} | theta = {theta} | v = {v} | w = {w} | dt = {dt}')
     # print(f'-' * 50)
 
@@ -63,7 +66,7 @@ def calc_combined_turn_speed_cost(state, local_goal, v, cost_gain):
     turn_angle = abs(desired_theta - theta)
     turn_angle = min(turn_angle, 2 * math.pi - turn_angle)
     # If the robot is moving fast and needs to turn a lot, the cost increases.
-    return cost_gain * turn_angle * v
+    return cost_gain * turn_angle * v # **0.5
 
 
 def dwa_control(state, config, obstacle_tree, buffered_obstacles, local_goal):

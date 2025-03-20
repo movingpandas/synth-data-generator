@@ -2,18 +2,40 @@
     "simulation_steps": 1000,
     "width": 100,
     "height": 100,
-    "num_ships": 20,
-    "speed_range": [1, 1.5],
+    "num_ships": 100,
+    "max_speed_range": [1.0, 1.5],
     "resolution": 1,
-    "obstacle_threshold": 3,
-    "lookahead": 3,
+    "obstacle_threshold": 2,
+    "lookahead": 5,
     "ports": [
         [10, 10], 
         [90, 10], 
         [20, 80], 
         [70, 60], 
         [45, 20], 
-        [55, 85]
+        [55, 85],
+        [30, 50],
+        [99, 35],
+        [16, 58],
+        [15, 45]
+    ],
+    "speed_limit_zones": [
+        {
+			"max_speed": 0.3,
+			"zone": [[60, 40], [80, 40], [80, 50], [60, 50]]
+		},
+		{
+			"max_speed": 0.2,
+			"zone": [[30, 60], [50, 60], [40, 70]]
+		},
+		{
+			"max_speed": 0.4,
+			"zone": [[80, 30], [100, 30], [100, 40], [80, 40]]
+		},
+		{
+			"max_speed": 0.5,
+			"zone": [[20, 40], [20, 60], [40, 60], [40, 40]]
+		}
     ],
     "obstacles": [
         [[0, 100], [100, 100], [100, 50], [90, 60], [85, 80], [60, 90], [20, 95], [5, 80], [10, 40], [20, 20], [0, 10]],
@@ -28,13 +50,13 @@
     "dwa_config": {
         "max_speed": 1.0,
         "min_speed": 0.1,
-        "max_yaw_rate": 15.0,
-        "max_acceleration": 0.5,
+        "max_yaw_rate": 30.0,
+        "max_acceleration": 0.1,
         "dt": 0.1,
-        "predict_time": 1,
+        "predict_time": 2,
         "robot_radius": 1,
-        "to_goal_cost_gain": 1,
-        "speed_cost_gain": 1,
+        "to_goal_cost_gain": 1.0,
+        "speed_cost_gain": 1.0,
         "obstacle_cost_gain": 1.0,
         "turn_cost_gain": 1.0
     }
