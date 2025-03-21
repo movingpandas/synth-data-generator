@@ -42,14 +42,30 @@ class Ship(Agent):
         if self.global_path and len(self.global_path) > 1:
             local_goal = self.get_local_goal(self.state, self.global_path, lookahead=self.model.lookahead)
             self.dwa_config["max_speed"] = self.get_speed_limit()
-            control, predicted_trajectory, cost_info = dwa_control(self.state, self.dwa_config, self.model.obstacle_tree, 
-                                                                   self.model.buffered_obstacles, local_goal)
-            self.state = motion(self.state, control[0], control[1], self.dwa_config["dt"])
+            control, predicted_trajectory, cost_info = dwa_control(
+                self.state, self.dwa_config, self.model.obstacle_tree, 
+                self.model.buffered_obstacles, local_goal
+            )
 
-            if math.hypot(self.state[0] - self.destination_port.pos[0], self.state[1] - self.destination_port.pos[1]) < self.dwa_config["robot_radius"]:
+            # Check if we should dock
+            if self.should_dock(control[0]):
                 self.move_to_destination()
-            else: 
+            else:
+                self.state = motion(self.state, control[0], control[1], self.dwa_config["dt"])
                 self.move_position()
+
+    def should_dock(self, current_speed):
+        """Determine if the ship should dock at its destination."""
+        remaining_distance = math.hypot(
+            self.state[0] - self.destination_port.pos[0], 
+            self.state[1] - self.destination_port.pos[1]
+        )
+
+        # Dock if the remaining distance is smaller than what the next step would move
+        if remaining_distance <= current_speed*self.dwa_config['dt']:
+            return True
+
+        return False
 
     def move_position(self):
         """Update the ship's position in the simulation space."""
@@ -85,7 +101,7 @@ class Ship(Agent):
             logging.info(f"No global path for ship {self.unique_id}.")
             return
         
-        global_path = [((i + 0.5) * self.model.resolution, (j + 0.5) * self.model.resolution)
+        global_path = [((i) * self.model.resolution, (j) * self.model.resolution)
                        for (i, j) in global_path_indices]
         return global_path
     

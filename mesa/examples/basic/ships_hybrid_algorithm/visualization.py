@@ -61,7 +61,7 @@ def plot_ship_trajectories(ax, df):
 
 def setup_plot():
     """Initialize and return the plot figure and axis."""
-    fig, ax = plt.subplots(figsize=(10, 10))
+    fig, ax = plt.subplots(figsize=(12, 10))
     ax.set_xlabel("X Coordinate")
     ax.set_ylabel("Y Coordinate")
     ax.set_title("DWA Ship Movement Trajectories and A* Paths")
