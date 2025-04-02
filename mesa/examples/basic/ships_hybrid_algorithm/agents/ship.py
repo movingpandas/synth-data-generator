@@ -17,7 +17,7 @@ class Ship(Agent):
         # Assign a random max speed within the speed range
         dwa_config["max_speed"] = self.random.uniform(self.model.max_speed_range[0], self.model.max_speed_range[1])
         self.original_max_speed = self.dwa_config["max_speed"]
-        logging.info(f"Ship {self.unique_id} has a maximum speed of {dwa_config["max_speed"]}.")
+        logging.info(f"Ship {self.unique_id} has a maximum speed of {dwa_config['max_speed']}.")
 
         if self.global_path and len(self.global_path) > 1:
             first_waypoint = self.global_path[1]  # Ensure it doesn't use the port position
