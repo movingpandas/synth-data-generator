@@ -71,9 +71,9 @@ class ShipModel(Model):
     
     def create_ships(self, num_ships, port_agents):
         """Create ship agents and assign them a start and destination port."""
-        for _ in range(num_ships):
+        for id in range(num_ships):
             start_port = random.choice(port_agents)
-            ship = Ship(self, start_port, port_agents, self.dwa_config)
+            ship = Ship(self, id, start_port, port_agents, self.dwa_config)
             self.space.place_agent(ship, start_port.pos)
             self.schedule.add(ship)
 

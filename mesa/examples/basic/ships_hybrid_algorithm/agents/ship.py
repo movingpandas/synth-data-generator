@@ -8,8 +8,9 @@ from a_star import astar
 from dynamic_window_approach import dwa_control, motion
 
 class Ship(Agent):
-    def __init__(self, model, start_port, all_ports, dwa_config):
-        super().__init__(model)
+    def __init__(self, model, id, start_port, all_ports, dwa_config):
+        super().__init__(self, model)
+        self.unique_id = id
         self.destination_port = self.assign_destination(all_ports, start_port)
         self.global_path = self.calculate_global_path(start_port.pos, self.destination_port.pos)
         self.dwa_config = dwa_config
