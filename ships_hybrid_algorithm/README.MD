@@ -1,6 +1,6 @@
 # Ship simulation
 
-Agent based simulation of ship movements between ports, using dynamic window routing path finding, with support for speed restrictions.
+Agent based simulation of ship movements between ports, using a dynamic window approach and A* routing with support for speed restrictions.
 
 ![A set of simultd ship trajectories](ships.png)
 
@@ -16,7 +16,7 @@ pip install mesa==2.4.0 shapely movingpandas
 ### Agents
 
 * Ports (`agents/port.py`) ... Fixed locations in the simulation space that serve as start and end points for ship trips
-* Ships (`agents/ship.py`) ... Ships travel from an origin port to a destination port using their desired speed. They use path finding based on dynamic window routing(`dynamic_window_approach.py`) and A* routing (`a_star.py`).
+* Ships (`agents/ship.py`) ... Ships travel from an origin port to a destination port using their desired speed. They use path finding based a dynamic window approach (`dynamic_window_approach.py`) and A* routing (`a_star.py`).
 * Obstacle (`agents/obstacle.py`) ... Areas that ships avoid. 
 
 ### Model
