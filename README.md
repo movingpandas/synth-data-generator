@@ -16,9 +16,9 @@ The generators are agent based models for movement in continuous space built usi
 
 To use the generators, follow the instructions in corresponding directory: 
 
-1. [Bird Movement Model](boid_flockers) (Mesa official example): 
+1. [Bird Movement Model](./boid_flockers) (Mesa official example): 
    [Boids](https://en.wikipedia.org/wiki/Boids)-style flocking model, demonstrating the use of agents moving through a continuous space following direction vectors.
-2. [Ship Movement Model](ship_hybrid_algorithm) (MobiSpaces addition): 
+2. [Ship Movement Model](./ships_hybrid_algorithm) (MobiSpaces addition): 
    Agent based simulation of ship movements between ports, using a dynamic window approach and A* routing with support for speed restrictions.
 
 
