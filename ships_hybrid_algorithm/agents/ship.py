@@ -102,29 +102,6 @@ class Ship(Agent):
             # Clamp to valid range
             noisy_speed = max(self.dwa_config["min_speed"], min(noisy_speed, self.dwa_config["max_speed"]))
             return noisy_speed
-    
-    def get_noisy_state(self):
-        # Randomly trigger heading deviation
-        if self.heading_drift_duration > 0:
-            # Continue existing deviation
-            noisy_theta = self.state[2] + self.heading_deviation
-            self.heading_drift_duration -= 1
-            logging.info(f"Continue deviation. Ship {self.unique_id}, Theta = {self.heading_deviation}")
-        else:
-            # Random chance to start a new deviation
-            if self.random.random() < self.model.deviation_chance:
-                self.heading_deviation = self.random.uniform(-self.model.max_heading_deviation, self.model.max_heading_deviation)
-                self.heading_drift_duration = self.model.deviation_duration
-                noisy_theta = self.state[2] + self.heading_deviation
-                logging.info(f"Starting directional deviation. Ship {self.unique_id}, Theta = {self.heading_deviation}")
-            else:
-                noisy_theta = self.state[2]
-
-        # Normalize heading
-        noisy_theta = (noisy_theta + math.pi) % (2 * math.pi) - math.pi
-        noisy_state = (self.state[0], self.state[1], noisy_theta, self.state[3], self.state[4])
-
-        return noisy_state
 
     def should_dock(self, current_speed):
         """Determine if the ship should dock at its destination."""
