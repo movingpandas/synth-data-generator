@@ -1,3 +1,4 @@
+import logging
 from mesa import Model
 from mesa.space import ContinuousSpace
 from mesa.datacollection import DataCollector
@@ -15,6 +16,7 @@ from a_star import create_occupancy_grid
 class ShipModel(Model):
     def __init__(self, width, height, num_ships, max_speed_range, speed_variation, directional_variation, ports, speed_limit_zones, obstacles, dwa_config, resolution=1, obstacle_threshold=0, lookahead=3.0):
         super().__init__()
+        # self.step = 0
         self.width = width
         self.height = height
         self.max_speed_range = max_speed_range
@@ -110,5 +112,7 @@ class ShipModel(Model):
         """Run one step of the model.
         
         All agents are activated in random order."""
+        # logging.info(f"Step {self.step}")
         self.schedule.step()
         self.datacollector.collect(self)
+        # self.step += 1
