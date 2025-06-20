@@ -14,7 +14,10 @@ class Ship(Agent):
         self.destination_port = self.assign_destination(all_ports, start_port)
         self.global_path = self.calculate_global_path(start_port.pos, self.destination_port.pos)
         self.dwa_config = dwa_config
-
+        
+        self.heading_deviation = 0.0
+        self.heading_drift_duration = 0
+        
         # Assign a random max speed within the speed range
         dwa_config["max_speed"] = self.random.uniform(self.model.max_speed_range[0], self.model.max_speed_range[1])
         self.original_max_speed = self.dwa_config["max_speed"]
@@ -43,8 +46,40 @@ class Ship(Agent):
         if self.global_path and len(self.global_path) > 1:
             local_goal = self.get_local_goal(self.state, self.global_path, lookahead=self.model.lookahead)
             self.dwa_config["max_speed"] = self.get_speed_limit()
+
+            if self.model.speed_variation["enabled"]:
+                self.dwa_config["max_speed"] = self.get_noisy_speed()
+
+            # if self.model.directional_variation["enabled"]:
+            #     noisy_state = self.get_noisy_state()  
+            # else:
+            #     noisy_state = self.state                         
+
+            if self.model.directional_variation["enabled"]:
+                # Randomly trigger heading deviation
+                if self.heading_drift_duration > 0:
+                    # Continue existing deviation
+                    noisy_theta = self.state[2] + self.heading_deviation
+                    self.heading_drift_duration -= 1
+                    logging.info(f"Continue deviation. Ship {self.unique_id}, Theta = {self.heading_deviation}")
+                else:
+                    # Random chance to start a new deviation
+                    if self.random.random() < self.model.deviation_chance:
+                        self.heading_deviation = self.random.uniform(-self.model.max_heading_deviation, self.model.max_heading_deviation)
+                        self.heading_drift_duration = self.model.deviation_duration
+                        noisy_theta = self.state[2] + self.heading_deviation
+                        logging.info(f"Starting directional deviation. Ship {self.unique_id}, Theta = {self.heading_deviation}")
+                    else:
+                        noisy_theta = self.state[2]
+
+                # Normalize heading
+                noisy_theta = (noisy_theta + math.pi) % (2 * math.pi) - math.pi
+                noisy_state = (self.state[0], self.state[1], noisy_theta, self.state[3], self.state[4])   
+            else:
+                noisy_state = self.state         
+
             control, predicted_trajectory, cost_info = dwa_control(
-                self.state, self.dwa_config, self.model.obstacle_tree, 
+                noisy_state, self.dwa_config, self.model.obstacle_tree, 
                 self.model.buffered_obstacles, local_goal
             )
 
@@ -54,6 +89,19 @@ class Ship(Agent):
             else:
                 self.state = motion(self.state, control[0], control[1], self.dwa_config["dt"])
                 self.move_position()
+            
+            # After motion, restore true max speed
+            self.dwa_config["max_speed"] = self.original_max_speed
+
+    def get_noisy_speed(self):
+            # Assign ± speed variation as a fraction of max_speed
+            max_speed_variation = self.model.max_speed_variation
+            variation_amount = self.dwa_config["max_speed"] * max_speed_variation
+            noisy_speed = self.dwa_config["max_speed"] + self.random.uniform(-variation_amount, variation_amount)
+
+            # Clamp to valid range
+            noisy_speed = max(self.dwa_config["min_speed"], min(noisy_speed, self.dwa_config["max_speed"]))
+            return noisy_speed
 
     def should_dock(self, current_speed):
         """Determine if the ship should dock at its destination."""

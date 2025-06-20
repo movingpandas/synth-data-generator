@@ -1,3 +1,4 @@
+import logging
 from mesa import Model
 from mesa.space import ContinuousSpace
 from mesa.datacollection import DataCollector
@@ -5,6 +6,7 @@ from mesa.time import RandomActivation
 from shapely.geometry import Polygon
 import random
 from shapely.strtree import STRtree
+import math
 
 from agents.ship import Ship
 from agents.port import Port
@@ -12,15 +14,25 @@ from agents.obstacle import Obstacle
 from a_star import create_occupancy_grid
 
 class ShipModel(Model):
-    def __init__(self, width, height, num_ships, max_speed_range, ports, speed_limit_zones, obstacles, dwa_config, resolution=1, obstacle_threshold=0, lookahead=3.0):
+    def __init__(self, width, height, num_ships, max_speed_range, speed_variation, directional_variation, ports, speed_limit_zones, obstacles, dwa_config, resolution=1, obstacle_threshold=0, lookahead=3.0):
         super().__init__()
+        # self.step = 0
         self.width = width
         self.height = height
         self.max_speed_range = max_speed_range
+        self.speed_variation = speed_variation
+        self.directional_variation = directional_variation
         self.dwa_config = dwa_config
         self.resolution = resolution
         self.obstacle_threshold = obstacle_threshold
         self.lookahead = lookahead
+
+        if speed_variation["enabled"]:
+            self.max_speed_variation = speed_variation["max_speed_variation"]
+        if directional_variation["enabled"]:
+            self.max_heading_deviation = math.radians(directional_variation["max_deviation_deg"])
+            self.deviation_duration = directional_variation["duration_steps"]
+            self.deviation_chance = directional_variation["activation_chance"]
 
         self.space = ContinuousSpace(self.width, self.height, torus=False)
         self.schedule = RandomActivation(self)
@@ -100,5 +112,7 @@ class ShipModel(Model):
         """Run one step of the model.
         
         All agents are activated in random order."""
+        # logging.info(f"Step {self.step}")
         self.schedule.step()
         self.datacollector.collect(self)
+        # self.step += 1
